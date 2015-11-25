@@ -15,32 +15,36 @@ var argv = require('yargs')
 	.help('help')
 	.argv;
 
-// If location flag was provided, use that location, else look up their IP for location
+// If they gave us a location use it, else do an IP address lookup
 if (typeof argv.location === 'string' && argv.location.length > 0) {
 
-	// Get geocoordinates of location name for weather API
-	geoLookup(argv.location, function(latLng) {
-		if (!latLng) return console.log('There was a problem retrieving the geocoordinates of that location.');
+	// Lookup the location name to get geo information
+	geoLookup(argv.location).then(function(latLng) {
 
-		// Weather information from weather module
-		weather(argv.location, latLng, function(weatherInformation){
-			if (!weatherInformation) return console.log('There was a problem getting the weather detail of that location');
+		// Get Weather Information from that geolocation
+		return weather(argv.location, latLng);
 
-			// We made it! Woo Hoo!
-			console.log(weatherInformation);
-		});
+	}).then(function(weatherInformation) {
+
+		// Log information to console
+		console.log(weatherInformation);
+
+	}).catch(function(error) {
+		console.log(error);
 	});
 } else {
 
-	// Get their Geocoordinates from an IP lookup
-	location(function(location) {
-		if (!location) return console.log('There was a problem retrieving location');
+	// IP Address lookup for their geocoordinates
+	location().then(function(location) {
 
-		// Weather information from weather module
-		weather(location.city, location.loc, function(weatherInformation){
-			if (!weatherInformation) return console.log('There was a problem getting the weather detail of that location');
-			
-			console.log(weatherInformation);
-		});
+		// Get Weather Information from that geolocation
+		return weather(location.city, location.loc);
+	}).then(function(weatherInformation) {
+
+		// Get Weather Information from that geolocation
+		console.log(weatherInformation);
+		
+	}).catch(function(error) {
+		console.log(error);
 	});
 }
